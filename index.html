@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carles Katherine · Catering</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+      "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+    }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Jost',sans-serif;background:#f4f3f0;color:#2c2c2a}
+    :root{
+      --olive:#6b7c4e;--olive-light:#8a9e66;--olive-pale:#e8ede0;
+      --dark:#2c2c2a;--dark2:#3d3d3a;--mid:#7a7a76;--light:#c8c8c4;
+      --bg:#f4f3f0;--bg2:#eceae5;--border:rgba(107,124,78,0.18);
+      --border-soft:rgba(44,44,42,0.1);--red:#a05050;--white:#fafaf8
+    }
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+    .login-box{background:var(--white);border:1px solid var(--border-soft);border-radius:20px;padding:48px 36px;width:100%;max-width:380px;box-shadow:0 8px 48px rgba(44,44,42,0.08);display:flex;flex-direction:column;align-items:center}
+    .login-logo{width:64px;height:64px;border-radius:50%;border:1.5px solid var(--olive);display:flex;align-items:center;justify-content:center;margin-bottom:20px;background:var(--olive-pale);font-size:28px}
+    .login-brand{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;color:var(--dark);letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:4px}
+    .login-sub{font-size:0.65rem;letter-spacing:4px;text-transform:uppercase;color:var(--mid);margin-bottom:36px}
+    .login-field{width:100%;margin-bottom:12px;display:flex;flex-direction:column;gap:5px}
+    .login-field label{font-size:0.68rem;color:var(--olive);letter-spacing:2px;text-transform:uppercase;font-weight:500}
+    .login-field input{width:100%;background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:11px 14px;color:var(--dark);font-family:'Jost',sans-serif;font-size:0.9rem;outline:none}
+    .login-field input:focus{border-color:var(--olive)}
+    .login-err{color:var(--red);font-size:0.8rem;margin-bottom:8px;min-height:16px;text-align:center}
+    .btn-login{width:100%;padding:12px;background:var(--olive);color:var(--white);border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;margin-top:4px}
+    .btn-login:hover{background:var(--olive-light)}
+    .app{min-height:100vh;background:var(--bg)}
+    .header{background:var(--white);border-bottom:1px solid var(--border-soft);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(44,44,42,0.05);flex-wrap:wrap;gap:10px}
+    .logo-wrap{display:flex;align-items:center;gap:12px}
+    .logo-mark{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--olive);display:flex;align-items:center;justify-content:center;background:var(--olive-pale);font-size:16px}
+    .logo-name{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--dark);letter-spacing:4px;text-transform:uppercase}
+    .logo-tag{font-size:0.56rem;letter-spacing:3px;text-transform:uppercase;color:var(--mid)}
+    .nav{display:flex;gap:3px;background:var(--bg2);padding:3px;border-radius:9px;overflow-x:auto}
+    .nav-btn{padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--mid);cursor:pointer;font-family:'Jost',sans-serif;font-size:0.78rem;font-weight:500;white-space:nowrap}
+    .nav-btn.active{background:var(--olive);color:var(--white)}
+    .sync{font-size:0.72rem;color:var(--mid)}
+    .btn-logout{background:none;border:1px solid var(--border-soft);border-radius:7px;padding:5px 12px;font-family:'Jost',sans-serif;font-size:0.72rem;color:var(--mid);cursor:pointer}
+    .btn-logout:hover{border-color:var(--red);color:var(--red)}
+    .main{max-width:1080px;margin:0 auto;padding:28px 20px}
+    .section-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--dark);margin-bottom:4px}
+    .section-sub{color:var(--mid);margin-bottom:24px;font-size:0.85rem}
+    .card{background:var(--white);border:1px solid var(--border-soft);border-radius:14px;padding:22px;margin-bottom:18px}
+    .card-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--dark);margin-bottom:14px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-group label{font-size:0.67rem;color:var(--olive);letter-spacing:1.5px;text-transform:uppercase;font-weight:500}
+    .form-group input,.form-group select,.form-group textarea{background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:9px 12px;color:var(--dark);font-family:'Jost',sans-serif;font-size:0.88rem;outline:none}
+    .form-group input:focus,.form-group select:focus{border-color:var(--olive)}
+    .btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+    .btn-olive{background:var(--olive);color:var(--white)}
+    .btn-olive:hover{background:var(--olive-light)}
+    .btn-outline{background:transparent;border:1px solid var(--border-soft);color:var(--dark2)}
+    .btn-outline:hover{border-color:var(--olive);color:var(--olive)}
+    .btn-danger{background:var(--red);color:var(--white);padding:5px 11px;font-size:0.76rem}
+    .btn-sm{padding:5px 12px;font-size:0.75rem}
+    .recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+    .recipe-card{background:var(--white);border:1px solid var(--border-soft);border-radius:12px;padding:18px;cursor:pointer;transition:all 0.2s}
+    .recipe-card:hover{border-color:var(--olive);transform:translateY(-2px);box-shadow:0 6px 20px rgba(107,124,78,0.1)}
+    .recipe-card h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--dark);margin-bottom:5px}
+    .tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.67rem;font-weight:600;margin-right:5px;margin-top:6px;background:var(--olive-pale);color:var(--olive);border:1px solid var(--border)}
+    .ing-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:7px}
+    .divider{border:none;border-top:1px solid var(--border-soft);margin:18px 0}
+    .cost-summary{background:linear-gradient(135deg,var(--olive-pale),rgba(232,237,224,0.4));border:1px solid var(--olive);border-radius:12px;padding:18px;margin-top:18px}
+    .cost-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:0.88rem}
+    .cost-row:last-child{border-bottom:none;font-weight:700;font-size:1.05rem;color:var(--olive)}
+    .cost-row span:first-child{color:var(--mid)}
+    .shop-item{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:var(--bg2);border-radius:8px;margin-bottom:7px;border:1px solid var(--border-soft)}
+    .shop-item.covered{opacity:0.4;text-decoration:line-through}
+    .shop-need{color:#b05050;font-size:0.8rem;font-weight:600}
+    .shop-ok{color:var(--olive);font-size:0.8rem;font-weight:600}
+    .inv-table{width:100%;border-collapse:collapse}
+    .inv-table th{text-align:left;padding:9px 12px;color:var(--olive);font-size:0.67rem;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid var(--border-soft);font-weight:600}
+    .inv-table td{padding:9px 12px;border-bottom:1px solid rgba(44,44,42,0.05);font-size:0.85rem}
+    .inv-table tr:hover td{background:var(--olive-pale)}
+    .stock-low{color:#b05050;font-weight:600}
+    .stock-ok{color:var(--olive);font-weight:600}
+    .flex{display:flex}.flex-between{display:flex;justify-content:space-between;align-items:center}
+    .gap-2{gap:7px}.gap-3{gap:11px}.mt-3{margin-top:11px}.mt-4{margin-top:18px}
+    .text-olive{color:var(--olive)}.text-sm{font-size:0.8rem}.text-muted{color:var(--mid)}
+    .empty{text-align:center;padding:44px;color:var(--light)}
+    .empty-icon{font-size:2.8rem;margin-bottom:10px}
+    .badge{background:var(--olive);color:var(--white);border-radius:20px;padding:1px 8px;font-size:0.67rem;font-weight:700;margin-left:7px}
+    .loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg)}
+    .spinner{width:38px;height:38px;border:3px solid var(--olive-pale);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+    .pulse{animation:pulse 1.5s infinite}
+    @media(max-width:680px){.form-grid,.form-grid-3{grid-template-columns:1fr}.ing-row{grid-template-columns:1fr 1fr}.header{padding:12px 14px}}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import { useState, useMemo, useEffect, createElement as h } from "react";
+import { createRoot } from "react-dom/client";
+import { initializeApp, getApps } from "firebase/app";
+import { getFirestore, collection, getDocs, setDoc, deleteDoc, doc } from "firebase/firestore";
+
+const FIREBASE_CONFIG = {
+apiKey: “AIzaSyCWZmm37GkL6fXTwuOIzR41WixaTe5Hy7o”,
+authDomain: “carles-catering.firebaseapp.com”,
+projectId: “carles-catering”,
+storageBucket: “carles-catering.firebasestorage.app”,
+messagingSenderId: “757568420941”,
+appId: “1:757568420941:web:0976a0e936f14d4cc17004”
+};
+
+const firebaseApp = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+const db = getFirestore(firebaseApp);
+
+async function fbLoad(col) {
+const snap = await getDocs(collection(db, col));
+return snap.docs.map(d => ({ …d.data(), id: d.id }));
+}
+async function fbSave(col, item) {
+await setDoc(doc(db, col, String(item.id)), item);
+}
+async function fbDelete(col, id) {
+await deleteDoc(doc(db, col, String(id)));
+}
+
+const CREDS = { user: “0”, pass: “admin1” };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const rcp = r => r.ingredients.reduce((s,i) => s + i.qty * i.unitCost, 0) / r.servings;
+
+function PlateIcon({ size=26 }) {
+return h(‘svg’,{width:size,height:size,viewBox:“0 0 28 28”,fill:“none”},
+h(‘circle’,{cx:14,cy:14,r:9,stroke:”#6b7c4e”,strokeWidth:1.3}),
+h(‘circle’,{cx:14,cy:14,r:5.5,stroke:”#6b7c4e”,strokeWidth:0.9}),
+h(‘line’,{x1:23.5,y1:7,x2:23.5,y2:21,stroke:”#6b7c4e”,strokeWidth:1.3,strokeLinecap:“round”}),
+h(‘line’,{x1:21,y1:7,x2:21,y2:12,stroke:”#6b7c4e”,strokeWidth:1.3,strokeLinecap:“round”}),
+h(‘line’,{x1:26,y1:7,x2:26,y2:12,stroke:”#6b7c4e”,strokeWidth:1.3,strokeLinecap:“round”})
+);
+}
+
+function App() {
+const [loggedIn, setLoggedIn] = useState(false);
+const [loading, setLoading] = useState(false);
+const [tab, setTab] = useState(“recetas”);
+const [recipes, setRecipes] = useState([]);
+const [inventory, setInventory] = useState([]);
+const [events, setEvents] = useState([]);
+const [syncing, setSyncing] = useState(false);
+const [shopEv, setShopEv] = useState(null);
+
+async function loadAll() {
+setLoading(true);
+try {
+const [r,inv,ev] = await Promise.all([fbLoad(“recipes”),fbLoad(“inventory”),fbLoad(“events”)]);
+setRecipes(r); setInventory(inv); setEvents(ev);
+} catch(e) { console.error(e); }
+setLoading(false);
+}
+
+async function doSave(col, item, setter) {
+setSyncing(true);
+setter(prev => prev.find(x=>x.id===item.id) ? prev.map(x=>x.id===item.id?item:x) : […prev,item]);
+await fbSave(col, item);
+setSyncing(false);
+}
+async function doDel(col, id, setter) {
+setSyncing(true);
+setter(prev => prev.filter(x=>x.id!==id));
+await fbDelete(col, id);
+setSyncing(false);
+}
+
+if (!loggedIn) return h(Login, { onLogin: async () => { await loadAll(); setLoggedIn(true); } });
+if (loading) return h(‘div’,{className:“loading-screen”}, h(‘div’,{className:“spinner”}), h(‘p’,{style:{color:“var(–mid)”,fontFamily:”‘Jost’,sans-serif”}},“Cargando datos…”));
+
+return h(‘div’,{className:“app”},
+h(‘header’,{className:“header”},
+h(‘div’,{className:“logo-wrap”},
+h(‘div’,{className:“logo-mark”}, h(PlateIcon,{size:20})),
+h(‘div’,null, h(‘div’,{className:“logo-name”},“Carles Katherine”), h(‘div’,{className:“logo-tag”},“Eventos · Catering”))
+),
+h(‘nav’,{className:“nav”},
+[[“recetas”,“🍽 Recetas”],[“eventos”,“📋 Eventos”],[“compras”,“🛒 Compras”],[“inventario”,“📦 Inventario”]].map(([k,v])=>
+h(‘button’,{key:k,className:`nav-btn ${tab===k?"active":""}`,onClick:()=>setTab(k)},
+v, k===“eventos”&&events.length>0&&h(‘span’,{className:“badge”},events.length)
+)
+)
+),
+h(‘div’,{className:“flex gap-2”,style:{alignItems:“center”}},
+syncing&&h(‘span’,{className:“sync”},“Guardando”,h(‘span’,{className:“pulse”},” ●”)),
+h(‘button’,{className:“btn-logout”,onClick:()=>setLoggedIn(false)},“Cerrar sesión”)
+)
+),
+h(‘main’,{className:“main”},
+tab===“recetas”&&h(Recetas,{recipes,save:i=>doSave(“recipes”,i,setRecipes),del:i=>doDel(“recipes”,i,setRecipes)}),
+tab===“eventos”&&h(Eventos,{events,recipes,save:i=>doSave(“events”,i,setEvents),del:i=>doDel(“events”,i,setEvents),setTab,setShopEv}),
+tab===“compras”&&h(Compras,{events,recipes,inventory,shopEv,setShopEv}),
+tab===“inventario”&&h(Inventario,{inventory,save:i=>doSave(“inventory”,i,setInventory),del:i=>doDel(“inventory”,i,setInventory)})
+)
+);
+}
+
+function Login({ onLogin }) {
+const [user,setUser]=useState(””); const [pass,setPass]=useState(””); const [err,setErr]=useState(””); const [loading,setLoading]=useState(false);
+function handle() {
+setLoading(true);
+setTimeout(async()=>{
+if(user===CREDS.user&&pass===CREDS.pass){await onLogin();}
+else{setErr(“Usuario o contraseña incorrectos.”);setLoading(false);}
+},400);
+}
+return h(‘div’,{className:“login-wrap”},
+h(‘div’,{className:“login-box”},
+h(‘div’,{className:“login-logo”},“🍽”),
+h(‘div’,{className:“login-brand”},“Carles Katherine”),
+h(‘div’,{className:“login-sub”},“Eventos · Catering”),
+h(‘div’,{className:“login-field”},h(‘label’,null,“Usuario”),h(‘input’,{value:user,onChange:e=>{setUser(e.target.value);setErr(””);},onKeyDown:e=>e.key===“Enter”&&handle(),placeholder:“Usuario”,autoFocus:true})),
+h(‘div’,{className:“login-field”},h(‘label’,null,“Contraseña”),h(‘input’,{type:“password”,value:pass,onChange:e=>{setPass(e.target.value);setErr(””);},onKeyDown:e=>e.key===“Enter”&&handle(),placeholder:”••••••••”})),
+h(‘div’,{className:“login-err”},err),
+h(‘button’,{className:“btn-login”,onClick:handle,disabled:loading},loading?“Conectando…”:“ENTRAR”)
+)
+);
+}
+
+function Recetas({ recipes, save, del }) {
+const [form,setForm]=useState(null); const [viewId,setViewId]=useState(null);
+const eIng=()=>({id:uid(),name:””,qty:0,unit:“g”,unitCost:0});
+const openNew=()=>setForm({id:uid(),name:””,category:“Plato fuerte”,servings:10,notes:””,ingredients:[eIng()]});
+const addIng=()=>setForm(f=>({…f,ingredients:[…f.ingredients,eIng()]}));
+const remIng=id=>setForm(f=>({…f,ingredients:f.ingredients.filter(i=>i.id!==id)}));
+const updIng=(id,field,val)=>setForm(f=>({…f,ingredients:f.ingredients.map(i=>i.id===id?{…i,[field]:field===“name”||field===“unit”?val:parseFloat(val)||0}:i)}));
+const doSave=async()=>{if(!form.name.trim())return;await save(form);setForm(null);};
+const doDel=async id=>{await del(id);setViewId(null);};
+const tot=form?form.ingredients.reduce((s,i)=>s+i.qty*i.unitCost,0):0;
+const cpp=form&&form.servings>0?tot/form.servings:0;
+const CATS=[“Entrada”,“Sopa”,“Ensalada”,“Plato fuerte”,“Guarnición”,“Postre”,“Bebida”];
+const UNITS=[“g”,“kg”,“ml”,“L”,“pza”,“taza”,“cucharada”,“cucharadita”,“manojo”,“diente”,“porción”,“sobre”];
+
+if(viewId){
+const r=recipes.find(x=>x.id===viewId); if(!r){setViewId(null);return null;}
+const c=rcp(r);
+return h(‘div’,null,
+h(‘div’,{className:“flex-between mt-3”,style:{marginBottom:22}},
+h(‘button’,{className:“btn btn-outline”,onClick:()=>setViewId(null)},“← Volver”),
+h(‘div’,{className:“flex gap-2”},
+h(‘button’,{className:“btn btn-outline btn-sm”,onClick:()=>{setForm({…r,ingredients:r.ingredients.map(i=>({…i}))});setViewId(null);}},“✏️ Editar”),
+h(‘button’,{className:“btn btn-danger btn-sm”,onClick:()=>doDel(r.id)},“🗑 Eliminar”)
+)
+),
+h(‘div’,{className:“card”},
+h(‘div’,{className:“flex-between”},h(‘h2’,{className:“section-title”,style:{marginBottom:0}},r.name),h(‘span’,{className:“tag”},r.category)),
+r.notes&&h(‘p’,{className:“text-muted text-sm mt-3”},r.notes),
+h(‘hr’,{className:“divider”}),
+h(‘div’,{className:“flex gap-3”,style:{marginBottom:14,flexWrap:“wrap”}},
+h(‘span’,{className:“text-sm text-muted”},“Rinde: “,h(‘strong’,{className:“text-olive”},r.servings,” personas”)),
+h(‘span’,{className:“text-sm text-muted”},“Costo/persona: “,h(‘strong’,{className:“text-olive”},”$”,c.toFixed(2))),
+h(‘span’,{className:“text-sm text-muted”},“Costo total: “,h(‘strong’,{className:“text-olive”},”$”,(c*r.servings).toFixed(2)))
+),
+h(‘table’,{className:“inv-table”},
+h(‘thead’,null,h(‘tr’,null,h(‘th’,null,“Ingrediente”),h(‘th’,null,“Cantidad”),h(‘th’,null,“Unidad”),h(‘th’,null,“Costo unit.”),h(‘th’,null,“Subtotal”))),
+h(‘tbody’,null,…r.ingredients.map(i=>h(‘tr’,{key:i.id},h(‘td’,null,i.name),h(‘td’,null,i.qty),h(‘td’,null,i.unit),h(‘td’,null,”$”,i.unitCost),h(‘td’,{className:“text-olive”},”$”,(i.qty*i.unitCost).toFixed(2)))))
+)
+)
+);
+}
+
+if(form) return h(‘div’,null,
+h(‘div’,{className:“flex-between”,style:{marginBottom:22}},
+h(‘h1’,{className:“section-title”},recipes.find(r=>r.id===form.id)?“Editar Receta”:“Nueva Receta”),
+h(‘button’,{className:“btn btn-outline”,onClick:()=>setForm(null)},“← Cancelar”)
+),
+h(‘div’,{className:“card”},
+h(‘div’,{className:“form-grid”,style:{marginBottom:12}},
+h(‘div’,{className:“form-group”},h(‘label’,null,“Nombre”),h(‘input’,{value:form.name,onChange:e=>setForm(f=>({…f,name:e.target.value})),placeholder:“Ej: Salmón al horno”})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Categoría”),h(‘select’,{value:form.category,onChange:e=>setForm(f=>({…f,category:e.target.value}))},CATS.map(c=>h(‘option’,{key:c},c)))),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Rinde (personas)”),h(‘input’,{type:“number”,value:form.servings,onChange:e=>setForm(f=>({…f,servings:parseInt(e.target.value)||1})),min:1})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Notas”),h(‘input’,{value:form.notes,onChange:e=>setForm(f=>({…f,notes:e.target.value})),placeholder:“Preparación, tiempos…”}))
+),
+h(‘hr’,{className:“divider”}),
+h(‘div’,{className:“flex-between”,style:{marginBottom:12}},
+h(‘h3’,{className:“card-title”,style:{marginBottom:0}},“Ingredientes”),
+h(‘button’,{className:“btn btn-outline btn-sm”,onClick:addIng},”+ Agregar”)
+),
+…form.ingredients.map(i=>h(‘div’,{key:i.id,className:“ing-row”},
+h(‘div’,{className:“form-group”},h(‘input’,{value:i.name,onChange:e=>updIng(i.id,“name”,e.target.value),placeholder:“Ingrediente”})),
+h(‘div’,{className:“form-group”},h(‘input’,{type:“number”,value:i.qty,onChange:e=>updIng(i.id,“qty”,e.target.value),min:0,step:0.1})),
+h(‘div’,{className:“form-group”},h(‘select’,{value:i.unit,onChange:e=>updIng(i.id,“unit”,e.target.value)},UNITS.map(u=>h(‘option’,{key:u},u)))),
+h(‘div’,{className:“form-group”},h(‘input’,{type:“number”,value:i.unitCost,onChange:e=>updIng(i.id,“unitCost”,e.target.value),min:0,step:0.01,placeholder:”$”})),
+h(‘button’,{className:“btn btn-danger”,onClick:()=>remIng(i.id)},“✕”)
+)),
+h(‘hr’,{className:“divider”}),
+h(‘div’,{className:“flex-between”},
+h(‘span’,{className:“text-sm text-muted”},“Total: “,h(‘strong’,{className:“text-olive”},”$”,tot.toFixed(2)),” · /persona: “,h(‘strong’,{className:“text-olive”},”$”,cpp.toFixed(2))),
+h(‘button’,{className:“btn btn-olive”,onClick:doSave},“💾 Guardar receta”)
+)
+)
+);
+
+return h(‘div’,null,
+h(‘div’,{className:“flex-between”},
+h(‘div’,null,h(‘h1’,{className:“section-title”},“Mis Recetas”),h(‘p’,{className:“section-sub”},recipes.length,” receta”,recipes.length!==1?“s”:””,” guardada”,recipes.length!==1?“s”:””)),
+h(‘button’,{className:“btn btn-olive”,onClick:openNew},”+ Nueva receta”)
+),
+recipes.length===0?h(‘div’,{className:“empty”},h(‘div’,{className:“empty-icon”},“🍽”),h(‘p’,null,“Sin recetas aún.”)):
+h(‘div’,{className:“recipe-grid”},
+…recipes.map(r=>h(‘div’,{key:r.id,className:“recipe-card”,onClick:()=>setViewId(r.id)},
+h(‘h3’,null,r.name),
+h(‘p’,{style:{marginTop:5}},r.ingredients.length,” ingredientes · rinde “,r.servings,” personas”),
+h(‘span’,{className:“tag”},r.category),
+h(‘div’,{style:{marginTop:9,color:“var(–olive)”,fontWeight:600,fontSize:“0.88rem”}},”$”,rcp(r).toFixed(2),h(‘span’,{style:{color:“var(–mid)”,fontWeight:400,fontSize:“0.75rem”}},” /persona”))
+))
+)
+);
+}
+
+function Eventos({ events, recipes, save, del, setTab, setShopEv }) {
+const eEv=()=>({id:uid(),name:””,date:””,type:“Boda”,guests:50,margin:30,dishes:[],notes:””});
+const [form,setForm]=useState(null); const [viewId,setViewId]=useState(null);
+const togDish=rid=>setForm(f=>({…f,dishes:f.dishes.find(d=>d.recipeId===rid)?f.dishes.filter(d=>d.recipeId!==rid):[…f.dishes,{recipeId:rid,qty:f.guests}]}));
+const updDish=(rid,qty)=>setForm(f=>({…f,dishes:f.dishes.map(d=>d.recipeId===rid?{…d,qty:parseInt(qty)||0}:d)}));
+const doSave=async()=>{if(!form.name.trim())return;await save(form);setForm(null);};
+const doDel=async id=>{await del(id);setViewId(null);};
+const calcCost=ev=>ev.dishes.reduce((s,d)=>{const r=recipes.find(x=>x.id===d.recipeId);return r?s+rcp(r)*d.qty:s;},0);
+const TYPES=[“Boda”,“Corporativo”,“Cumpleaños”,“Festival”,“Graduación”,“Otro”];
+
+if(viewId){
+const ev=events.find(x=>x.id===viewId); if(!ev){setViewId(null);return null;}
+const base=calcCost(ev),marg=base*(ev.margin/100),total=base+marg;
+return h(‘div’,null,
+h(‘div’,{className:“flex-between”,style:{marginBottom:22}},
+h(‘button’,{className:“btn btn-outline”,onClick:()=>setViewId(null)},“← Volver”),
+h(‘div’,{className:“flex gap-2”},
+h(‘button’,{className:“btn btn-outline btn-sm”,onClick:()=>{setForm({…ev,dishes:[…ev.dishes]});setViewId(null);}},“✏️ Editar”),
+h(‘button’,{className:“btn btn-olive btn-sm”,onClick:()=>{setShopEv(ev.id);setTab(“compras”);}},“🛒 Compras”),
+h(‘button’,{className:“btn btn-danger btn-sm”,onClick:()=>doDel(ev.id)},“🗑”)
+)
+),
+h(‘div’,{className:“card”},
+h(‘div’,{className:“flex-between”},h(‘h2’,{className:“section-title”,style:{marginBottom:0}},ev.name),h(‘span’,{className:“tag”},ev.type)),
+h(‘p’,{className:“text-muted text-sm mt-3”},ev.date&&`📅 ${ev.date} · `,“👥 “,ev.guests,” personas”,ev.notes&&` · ${ev.notes}`),
+h(‘hr’,{className:“divider”}),
+h(‘h3’,{className:“card-title”},“Menú del evento”),
+ev.dishes.length===0?h(‘p’,{className:“text-muted”},“Sin platillos.”):
+h(‘table’,{className:“inv-table”},
+h(‘thead’,null,h(‘tr’,null,h(‘th’,null,“Platillo”),h(‘th’,null,“Categoría”),h(‘th’,null,“Personas”),h(‘th’,null,“Costo”))),
+h(‘tbody’,null,…ev.dishes.map(d=>{const r=recipes.find(x=>x.id===d.recipeId);if(!r)return null;return h(‘tr’,{key:d.recipeId},h(‘td’,null,r.name),h(‘td’,null,h(‘span’,{className:“tag”},r.category)),h(‘td’,null,d.qty),h(‘td’,{className:“text-olive”},”$”,(rcp(r)*d.qty).toFixed(2)));}).filter(Boolean))
+),
+h(‘div’,{className:“cost-summary mt-4”},
+h(‘div’,{className:“cost-row”},h(‘span’,null,“Costo ingredientes”),h(‘span’,null,”$”,base.toFixed(2))),
+h(‘div’,{className:“cost-row”},h(‘span’,null,“Margen (”,ev.margin,”%)”),h(‘span’,null,”$”,marg.toFixed(2))),
+h(‘div’,{className:“cost-row”},h(‘span’,null,“💰 Precio al cliente”),h(‘span’,null,”$”,total.toFixed(2))),
+h(‘div’,{className:“cost-row”,style:{borderTop:“1px solid var(–border-soft)”,marginTop:7,paddingTop:7}},h(‘span’,null,“Por persona”),h(‘span’,{className:“text-olive”},”$”,ev.guests>0?(total/ev.guests).toFixed(2):0))
+)
+)
+);
+}
+
+if(form) return h(‘div’,null,
+h(‘div’,{className:“flex-between”,style:{marginBottom:22}},
+h(‘h1’,{className:“section-title”},events.find(e=>e.id===form.id)?“Editar Evento”:“Nuevo Evento”),
+h(‘button’,{className:“btn btn-outline”,onClick:()=>setForm(null)},“← Cancelar”)
+),
+h(‘div’,{className:“card”},
+h(‘div’,{className:“form-grid”,style:{marginBottom:12}},
+h(‘div’,{className:“form-group”},h(‘label’,null,“Nombre”),h(‘input’,{value:form.name,onChange:e=>setForm(f=>({…f,name:e.target.value})),placeholder:“Boda García-López”})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Tipo”),h(‘select’,{value:form.type,onChange:e=>setForm(f=>({…f,type:e.target.value}))},TYPES.map(t=>h(‘option’,{key:t},t)))),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Fecha”),h(‘input’,{type:“date”,value:form.date,onChange:e=>setForm(f=>({…f,date:e.target.value}))})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Personas”),h(‘input’,{type:“number”,value:form.guests,onChange:e=>setForm(f=>({…f,guests:parseInt(e.target.value)||0})),min:1})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Margen (%)”),h(‘input’,{type:“number”,value:form.margin,onChange:e=>setForm(f=>({…f,margin:parseInt(e.target.value)||0})),min:0})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Notas”),h(‘input’,{value:form.notes,onChange:e=>setForm(f=>({…f,notes:e.target.value})),placeholder:“Detalles…”}))
+),
+h(‘hr’,{className:“divider”}),
+h(‘h3’,{className:“card-title”},“Platillos del menú”),
+recipes.length===0?h(‘p’,{className:“text-muted text-sm”},“Primero agrega recetas.”):
+recipes.map(r=>{
+const sel=form.dishes.find(d=>d.recipeId===r.id);
+return h(‘div’,{key:r.id,style:{background:“var(–bg2)”,borderRadius:9,padding:“12px 14px”,marginBottom:8,border:`1px solid ${sel?"var(--olive)":"var(--border-soft)"}`}},
+h(‘div’,{className:“flex-between”},
+h(‘div’,null,
+h(‘label’,{style:{display:“flex”,alignItems:“center”,gap:9,cursor:“pointer”}},
+h(‘input’,{type:“checkbox”,checked:!!sel,onChange:()=>togDish(r.id),style:{accentColor:“var(–olive)”,width:15,height:15}}),
+h(‘span’,{style:{fontWeight:500}},r.name),h(‘span’,{className:“tag”},r.category)
+),
+h(‘p’,{className:“text-sm text-muted”,style:{marginTop:3,marginLeft:24}},”$”,rcp(r).toFixed(2),”/persona”)
+),
+sel&&h(‘div’,{className:“form-group”,style:{width:120}},h(‘label’,null,“Personas”),h(‘input’,{type:“number”,value:sel.qty,onChange:e=>updDish(r.id,e.target.value),min:1}))
+)
+);
+}),
+h(‘hr’,{className:“divider”}),
+h(‘div’,{style:{textAlign:“right”}},h(‘button’,{className:“btn btn-olive”,onClick:doSave},“💾 Guardar evento”))
+)
+);
+
+return h(‘div’,null,
+h(‘div’,{className:“flex-between”},
+h(‘div’,null,h(‘h1’,{className:“section-title”},“Eventos”),h(‘p’,{className:“section-sub”},events.length,” evento”,events.length!==1?“s”:””,” registrado”,events.length!==1?“s”:””)),
+h(‘button’,{className:“btn btn-olive”,onClick:()=>setForm(eEv())},”+ Nuevo evento”)
+),
+events.length===0?h(‘div’,{className:“empty”},h(‘div’,{className:“empty-icon”},“📋”),h(‘p’,null,“Sin eventos aún.”)):
+h(‘div’,{className:“recipe-grid”},
+…events.map(ev=>{
+const cost=calcCost(ev),total=cost*(1+ev.margin/100);
+return h(‘div’,{key:ev.id,className:“recipe-card”,onClick:()=>setViewId(ev.id)},
+h(‘h3’,null,ev.name),
+h(‘p’,{style:{marginTop:5}},ev.date&&`${ev.date} · `,“👥 “,ev.guests,” personas”),
+h(‘span’,{className:“tag”},ev.type),
+h(‘p’,{className:“text-sm text-muted”,style:{marginTop:7}},ev.dishes.length,” platillo”,ev.dishes.length!==1?“s”:””),
+h(‘div’,{style:{marginTop:7,color:“var(–olive)”,fontWeight:600}},”$”,total.toFixed(2),h(‘span’,{style:{color:“var(–mid)”,fontWeight:400,fontSize:“0.75rem”}},” precio cliente”))
+);
+})
+)
+);
+}
+
+function Compras({ events, recipes, inventory, shopEv, setShopEv }) {
+const selEv = shopEv ? events.find(e=>e.id===shopEv) : events[0];
+const list = useMemo(()=>{
+if(!selEv)return[];
+const map={};
+selEv.dishes.forEach(d=>{
+const r=recipes.find(x=>x.id===d.recipeId); if(!r)return;
+const scale=d.qty/r.servings;
+r.ingredients.forEach(i=>{const k=i.name.toLowerCase().trim();if(!map[k])map[k]={name:i.name,unit:i.unit,needed:0,cost:i.unitCost};map[k].needed+=i.qty*scale;});
+});
+return Object.values(map).map(item=>{
+const inv=inventory.find(x=>x.name.toLowerCase().trim()===item.name.toLowerCase().trim());
+const inStock=inv?inv.qty:0,toBuy=Math.max(0,item.needed-inStock);
+return{…item,inStock,toBuy,total:toBuy*item.cost};
+});
+},[selEv,recipes,inventory]);
+const totalC=list.reduce((s,i)=>s+i.total,0);
+return h(‘div’,null,
+h(‘div’,{className:“flex-between”},
+h(‘div’,null,h(‘h1’,{className:“section-title”},“Lista de Compras”),h(‘p’,{className:“section-sub”},“Calculada según inventario actual”)),
+events.length>1&&h(‘div’,{className:“form-group”,style:{width:200}},h(‘label’,null,“Evento”),h(‘select’,{value:selEv?.id||””,onChange:e=>setShopEv(e.target.value)},events.map(ev=>h(‘option’,{key:ev.id,value:ev.id},ev.name))))
+),
+!selEv?h(‘div’,{className:“empty”},h(‘div’,{className:“empty-icon”},“🛒”),h(‘p’,null,“Crea un evento primero.”)):
+h(‘div’,null,
+h(‘div’,{className:“card”,style:{marginBottom:18,padding:“12px 18px”}},
+h(‘div’,{className:“flex gap-3”,style:{flexWrap:“wrap”}},
+h(‘span’,{className:“text-sm text-muted”},“Evento: “,h(‘strong’,{className:“text-olive”},selEv.name)),
+h(‘span’,{className:“text-sm text-muted”},“👥 “,selEv.guests,” personas”),
+h(‘span’,{className:“text-sm text-muted”},“Total: “,h(‘strong’,{className:“text-olive”},”$”,totalC.toFixed(2)))
+)
+),
+list.filter(i=>i.toBuy>0).length>0&&h(‘div’,null,
+h(‘h3’,{className:“card-title”},“🛒 Por comprar”),
+…list.filter(i=>i.toBuy>0).map((item,idx)=>h(‘div’,{key:idx,className:“shop-item”},
+h(‘div’,null,h(‘div’,{style:{fontWeight:500}},item.name),h(‘div’,{className:“text-sm text-muted”},“Stock: “,item.inStock.toFixed(2),” · Necesitas: “,item.needed.toFixed(2),” “,item.unit)),
+h(‘div’,{style:{textAlign:“right”}},h(‘div’,{className:“shop-need”},“Comprar: “,item.toBuy.toFixed(2),” “,item.unit),h(‘div’,{className:“text-sm text-olive”},”$”,item.total.toFixed(2)))
+))
+),
+list.filter(i=>i.toBuy===0).length>0&&h(‘div’,null,
+h(‘h3’,{className:“card-title”,style:{marginTop:20}},“✅ Ya tienes en inventario”),
+…list.filter(i=>i.toBuy===0).map((item,idx)=>h(‘div’,{key:idx,className:“shop-item covered”},h(‘div’,null,item.name),h(‘div’,{className:“shop-ok”},“✓ Cubierto”)))
+),
+h(‘div’,{className:“cost-summary mt-4”},
+h(‘div’,{className:“cost-row”},h(‘span’,null,“Cubiertos”),h(‘span’,{className:“shop-ok”},list.filter(i=>i.toBuy===0).length,” items”)),
+h(‘div’,{className:“cost-row”},h(‘span’,null,“Por comprar”),h(‘span’,{className:“shop-need”},list.filter(i=>i.toBuy>0).length,” items”)),
+h(‘div’,{className:“cost-row”},h(‘span’,null,“💰 Total estimado”),h(‘span’,null,”$”,totalC.toFixed(2)))
+)
+)
+);
+}
+
+function Inventario({ inventory, save, del }) {
+const eItem=()=>({id:uid(),name:””,qty:0,unit:“g”,minStock:0});
+const [form,setForm]=useState(null);
+const doSave=async()=>{if(!form.name.trim())return;await save(form);setForm(null);};
+const doDel=async id=>await del(id);
+const updQty=async(item,delta)=>await save({…item,qty:Math.max(0,parseFloat((item.qty+delta).toFixed(2)))});
+const low=inventory.filter(i=>i.qty<=i.minStock);
+const UNITS=[“g”,“kg”,“ml”,“L”,“pza”,“taza”,“cucharada”,“manojo”,“diente”,“porción”,“sobre”];
+return h(‘div’,null,
+h(‘div’,{className:“flex-between”},
+h(‘div’,null,h(‘h1’,{className:“section-title”},“Inventario”),h(‘p’,{className:“section-sub”},inventory.length,” productos · “,low.length,” con stock bajo”)),
+h(‘button’,{className:“btn btn-olive”,onClick:()=>setForm(eItem())},”+ Agregar producto”)
+),
+low.length>0&&h(‘div’,{style:{background:“rgba(160,80,80,0.08)”,border:“1px solid rgba(160,80,80,0.3)”,borderRadius:11,padding:“12px 18px”,marginBottom:18}},h(‘strong’,{style:{color:”#b05050”}},“⚠️ Stock bajo: “),low.map(i=>i.name).join(”, “)),
+form&&h(‘div’,{className:“card”,style:{marginBottom:18}},
+h(‘h3’,{className:“card-title”},inventory.find(i=>i.id===form.id)?“Editar producto”:“Nuevo producto”),
+h(‘div’,{className:“form-grid-3”},
+h(‘div’,{className:“form-group”},h(‘label’,null,“Producto”),h(‘input’,{value:form.name,onChange:e=>setForm(f=>({…f,name:e.target.value})),placeholder:“Ej: Aceite de oliva”})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Cantidad actual”),h(‘input’,{type:“number”,value:form.qty,onChange:e=>setForm(f=>({…f,qty:parseFloat(e.target.value)||0})),min:0,step:0.1})),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Unidad”),h(‘select’,{value:form.unit,onChange:e=>setForm(f=>({…f,unit:e.target.value}))},UNITS.map(u=>h(‘option’,{key:u},u)))),
+h(‘div’,{className:“form-group”},h(‘label’,null,“Stock mínimo”),h(‘input’,{type:“number”,value:form.minStock,onChange:e=>setForm(f=>({…f,minStock:parseFloat(e.target.value)||0})),min:0,step:0.1}))
+),
+h(‘div’,{className:“flex gap-2 mt-3”},
+h(‘button’,{className:“btn btn-olive”,onClick:doSave},“💾 Guardar”),
+h(‘button’,{className:“btn btn-outline”,onClick:()=>setForm(null)},“Cancelar”)
+)
+),
+inventory.length===0?h(‘div’,{className:“empty”},h(‘div’,{className:“empty-icon”},“📦”),h(‘p’,null,“Sin productos en inventario.”)):
+h(‘div’,{className:“card”},
+h(‘table’,{className:“inv-table”},
+h(‘thead’,null,h(‘tr’,null,h(‘th’,null,“Producto”),h(‘th’,null,“En stock”),h(‘th’,null,“Mínimo”),h(‘th’,null,“Estado”),h(‘th’,null,“Ajustar”),h(‘th’,null,””))),
+h(‘tbody’,null,…inventory.map(item=>{
+const isLow=item.qty<=item.minStock;
+return h(‘tr’,{key:item.id},
+h(‘td’,{style:{fontWeight:500}},item.name),
+h(‘td’,null,h(‘strong’,{className:isLow?“stock-low”:“stock-ok”},item.qty,” “,item.unit)),
+h(‘td’,{className:“text-muted”},item.minStock,” “,item.unit),
+h(‘td’,null,isLow?h(‘span’,{className:“stock-low”},“⚠️ Bajo”):h(‘span’,{className:“stock-ok”},“✓ OK”)),
+h(‘td’,null,h(‘div’,{className:“flex gap-2”},h(‘button’,{className:“btn btn-outline btn-sm”,onClick:()=>updQty(item,-1)},“−”),h(‘button’,{className:“btn btn-outline btn-sm”,onClick:()=>updQty(item,1)},”+”))),
+h(‘td’,null,h(‘div’,{className:“flex gap-2”},h(‘button’,{className:“btn btn-outline btn-sm”,onClick:()=>setForm({…item})},“✏️”),h(‘button’,{className:“btn btn-danger btn-sm”,onClick:()=>doDel(item.id)},“🗑”)))
+);
+}))
+)
+)
+);
+}
+
+createRoot(document.getElementById(“root”)).render(h(App));
+</script>
+
+</body>
+</html>
